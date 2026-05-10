@@ -9,6 +9,8 @@ import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
 
+from core.pipeline import run_pipeline
+
 
 load_dotenv()
 
@@ -1067,22 +1069,11 @@ def main() -> None:
             return
 
         try:
-            with st.spinner("Scraping website..."):
-                pages = crawl_site(url, MAX_SUBPAGES)
-                if not pages:
-                    raise RuntimeError("No pages were scraped.")
-
-            with st.spinner("Extracting data..."):
-                cleaned_text = preprocess_pages(pages)
-                extraction = pass_1_extract(cleaned_text)
-                extraction = normalize_extraction(extraction)
-                extraction["_url"] = url
-
-            with st.spinner("Analyzing intelligence..."):
-                analysis = pass_2_analyze(extraction)
-            with st.spinner("Compressing to agent handoff packet..."):
-                packet = pass_3_compress(extraction, analysis)
-                save_to_database(url, extraction, analysis, packet)
+            with st.spinner("Running scouting pipeline..."):
+                result = run_pipeline(url)
+                extraction = result["extraction"]
+                analysis = result["analysis"]
+                packet = result["packet"]
 
             st.success("Scouting complete.")
 
