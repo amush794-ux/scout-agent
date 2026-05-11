@@ -1,12 +1,10 @@
 import json
 import os
-import re
 from typing import Any, Dict, List, Optional
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 import requests
 import streamlit as st
-from openai import OpenAI
 from dotenv import load_dotenv
 
 from core.pipeline import run_pipeline
@@ -16,10 +14,6 @@ load_dotenv()
 
 FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_MODEL = "gpt-4o"
-
-FIRECRAWL_BASE_URL = "https://api.firecrawl.dev/v1"
-MAX_SUBPAGES = 5
 
 TIER_COLORS = {
     "CONFIRMED WEAKNESS": "#d32f2f",
