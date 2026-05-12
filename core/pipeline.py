@@ -13,7 +13,7 @@ from agents.scout import run_scout, call_openai, parse_json_response
 from core.scoring import calculate_scores
 from core.packet_validation import validate_handoff_packet
 from agents.email_composer import generate_email_draft
-from database.db import init_db, insert_lead, save_scout_result
+from database.db import init_db, insert_lead, save_scout_result, update_lead_draft_status
 
 
 load_dotenv()
@@ -334,6 +334,24 @@ def run_pipeline(url: str) -> dict:
     
     # Generate email draft using Agent 2
     email_result = generate_email_draft(packet)
+    
+    # Update draft status in database
+    try:
+        if email_result.get("success") is True:
+            update_lead_draft_status(
+                url=url,
+                status="draft_reviewing",
+                draft_json=email_result
+            )
+        else:
+            update_lead_draft_status(
+                url=url,
+                status="draft_failed",
+                draft_json=email_result
+            )
+    except Exception:
+        # Draft-state database failures should not crash the pipeline
+        pass
     
     return {
         "extraction": extraction,
