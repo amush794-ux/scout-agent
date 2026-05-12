@@ -204,6 +204,7 @@ def main() -> None:
                 extraction = result["extraction"]
                 analysis = result["analysis"]
                 packet = result["packet"]
+                email_draft = result.get("email_draft", {})
 
             st.success("Scouting complete.")
 
@@ -218,6 +219,10 @@ def main() -> None:
             st.subheader("Agent Handoff Packet")
             st.json(packet)
             copy_button_packet(packet)
+
+            st.divider()
+            st.subheader("Agent 2 Email Draft")
+            st.json(email_draft)
 
         except ValueError as exc:
             st.error(f"Data formatting issue: {exc}")
