@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 
 from agents.scout import run_scout, call_openai, parse_json_response
 from core.scoring import calculate_scores
+from database.db import init_db, insert_lead, save_scout_result
 
 
 load_dotenv()
@@ -270,6 +271,28 @@ def run_pipeline(url: str) -> dict:
     
     packet = pass_3_compress(extraction, analysis)
     save_to_database(url, extraction, analysis, packet)
+    
+    # Save to new database
+    try:
+        init_db()
+        lead_id = insert_lead(
+            url=url,
+            business_name=extraction.get("company_name", ""),
+            industry=extraction.get("business_type", ""),
+            source="scout_agent"
+        )
+        save_scout_result(
+            lead_id=lead_id,
+            url=url,
+            scout_json={
+                "extraction": extraction,
+                "analysis": analysis,
+                "packet": packet
+            }
+        )
+    except Exception as exc:
+        # Database failure should not break Scout run
+        pass
     
     return {
         "extraction": extraction,
