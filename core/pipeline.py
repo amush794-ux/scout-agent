@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from agents.scout import run_scout, call_openai, parse_json_response
 from core.scoring import calculate_scores
 from core.packet_validation import validate_handoff_packet
+from agents.email_composer import generate_email_draft
 from database.db import init_db, insert_lead, save_scout_result
 
 
@@ -328,9 +329,13 @@ def run_pipeline(url: str) -> dict:
         # Database failure should not break Scout run
         pass
     
+    # Generate email draft using Agent 2
+    email_result = generate_email_draft(packet)
+    
     return {
         "extraction": extraction,
         "analysis": analysis,
         "packet": packet,
+        "email_draft": email_result,
     }
 
