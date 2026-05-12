@@ -40,6 +40,24 @@ def init_db(db_path: str = "data/agency.db") -> None:
         )
     """)
     
+    # Add review state columns to leads table if they don't exist
+    cursor.execute("PRAGMA table_info(leads)")
+    existing_columns = [row[1] for row in cursor.fetchall()]
+    
+    review_columns = [
+        ("draft_status", "TEXT DEFAULT 'draft_pending'"),
+        ("revision_count", "INTEGER DEFAULT 0"),
+        ("latest_email_draft", "TEXT"),
+        ("draft_generated_at", "TEXT"),
+        ("approved_at", "TEXT"),
+        ("rejected_at", "TEXT"),
+        ("rejection_reason", "TEXT")
+    ]
+    
+    for column_name, column_def in review_columns:
+        if column_name not in existing_columns:
+            cursor.execute(f"ALTER TABLE leads ADD COLUMN {column_name} {column_def}")
+    
     conn.commit()
     conn.close()
 
