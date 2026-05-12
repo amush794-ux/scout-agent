@@ -208,6 +208,7 @@ def pass_3_compress(extraction_json: Dict[str, Any], analysis: Dict[str, Any]) -
 Compress this intelligence into a strict agent handoff packet.
 Return ONLY valid JSON with exactly these keys:
 - company_name (string)
+- url (string)
 - vertical (string)
 - core_offer (string)
 - target_customer (string)
@@ -220,7 +221,10 @@ Return ONLY valid JSON with exactly these keys:
 - urgency_score (integer 0-100)
 - trust_score (integer 0-100)
 - decision_maker_guess (string)
-- personalization_hooks (list, max 3 specific observable details from the site only)
+- personalization_hooks (list, max 3 specific observable details from site only)
+- confidence_flags (object with business_identity, target_customer, weaknesses, outreach_angle)
+- risk_notes (array of risk considerations)
+- do_not_say (array of phrases to avoid)
 - schema_version (string, always "1.0")
 Rules:
 - No full sentences unless the field requires it.
@@ -239,12 +243,33 @@ Analysis JSON:
     packet = parse_json_response(output)
     packet["urgency_score"] = scores["urgency_score"]
     packet["trust_score"] = scores["trust_score"]
+    
+    # Add missing schema fields
+    packet["url"] = extraction_json.get("_url", "")
+    packet["confidence_flags"] = {
+        "business_identity": "medium",
+        "target_customer": "medium", 
+        "weaknesses": "medium",
+        "outreach_angle": "medium"
+    }
+    packet["risk_notes"] = [
+        "uncertain target customer",
+        "weak evidence for pain point",
+        "avoid overclaiming results",
+        "unclear decision maker"
+    ]
+    packet["do_not_say"] = [
+        "guaranteed results",
+        "claims about revenue improvement",
+        "assumptions not supported by Scout data"
+    ]
     required_keys = {
-        "company_name", "vertical", "core_offer", "target_customer",
+        "company_name", "url", "vertical", "core_offer", "target_customer",
         "top_pain_points", "confirmed_weaknesses", "missing_assets",
         "highest_value_opportunity", "best_service_fit", "buying_signals",
         "urgency_score", "trust_score", "decision_maker_guess",
-        "personalization_hooks", "schema_version"
+        "personalization_hooks", "confidence_flags", "risk_notes", "do_not_say",
+        "schema_version"
     }
     if not required_keys.issubset(set(packet.keys())):
         raise ValueError("Pass 3 packet is missing required keys.")
