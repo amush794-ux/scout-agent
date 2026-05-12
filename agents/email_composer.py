@@ -21,6 +21,11 @@ ABSOLUTE_BANNED_PHRASES = [
     "drive engagement",
     "unlock growth",
     "take your business to the next level",
+    "creșterea vizibilității",
+    "prezență online",
+    "soluții digitale",
+    "strategie digitală",
+    "transformare digitală",
 ]
 
 SOFT_WARNING_PHRASES = [
@@ -33,6 +38,15 @@ SOFT_WARNING_PHRASES = [
     "leverage",
     "innovative solution",
     "cutting-edge",
+    "v-ar interesa",
+    "ați fi deschiși",
+    "o discuție scurtă",
+    "putem discuta",
+    "cum vă putem ajuta",
+    "cu respect",
+    "cu stimă",
+    "îmbunătăți conversiile",
+    "alte clinici",
 ]
 
 def find_banned_phrases(text: str) -> list[str]:
@@ -71,6 +85,21 @@ def load_system_prompt() -> str:
     except Exception:
         return "You are a professional outbound consultant."
 
+def load_language_rules(language: str) -> str:
+    """Load language-specific outreach rules from markdown file."""
+    if language == "ro":
+        try:
+            with open("docs/agent2_romanian_outreach_rules.md", "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception:
+            return ""
+    elif language == "en":
+        return ""
+    elif language == "unknown":
+        return ""
+    else:
+        return ""
+
 def generate_email_draft(packet: dict) -> dict:
     """
     Generate a professional outreach email draft from a validated Agent 1 handoff packet.
@@ -106,7 +135,19 @@ def generate_email_draft(packet: dict) -> dict:
     try:
         client = OpenAI(api_key=OPENAI_API_KEY)
         
-        system_prompt = load_system_prompt()
+        # Load language-specific rules
+        language = packet.get("language", "ro")
+        base_system_prompt = load_system_prompt()
+        language_rules = load_language_rules(language)
+        
+        # Combine base prompt with language rules
+        system_prompt = base_system_prompt
+        if language_rules:
+            system_prompt += "\n\n" + language_rules
+        
+        # Add explicit language instruction
+        if language == "ro":
+            system_prompt += "\n\nIMPORTANT: Write the email in Romanian. Do not translate English templates. Follow Romanian-native rules."
 
         user_prompt = f"""Generate a personalized business email based on this handoff packet:
 
