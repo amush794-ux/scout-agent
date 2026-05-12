@@ -11,6 +11,66 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = "gpt-4o"
 
+ABSOLUTE_BANNED_PHRASES = [
+    "game-changer",
+    "game changer",
+    "boost your visibility",
+    "enhance your brand",
+    "enhance your digital presence",
+    "strengthen your digital presence",
+    "drive engagement",
+    "unlock growth",
+    "take your business to the next level",
+]
+
+SOFT_WARNING_PHRASES = [
+    "i hope this message finds you well",
+    "i just took a look at your website",
+    "would you be open to",
+    "support you",
+    "optimize your",
+    "synergy",
+    "leverage",
+    "innovative solution",
+    "cutting-edge",
+]
+
+def find_banned_phrases(text: str) -> list[str]:
+    """Find absolute banned phrases in text (case-insensitive)."""
+    if not isinstance(text, str) or not text.strip():
+        return []
+    
+    text_lower = text.lower()
+    found_phrases = []
+    
+    for phrase in ABSOLUTE_BANNED_PHRASES:
+        if phrase in text_lower:
+            found_phrases.append(phrase)
+    
+    return found_phrases
+
+def find_soft_warning_phrases(text: str) -> list[str]:
+    """Find soft warning phrases in text (case-insensitive)."""
+    if not isinstance(text, str) or not text.strip():
+        return []
+    
+    text_lower = text.lower()
+    found_phrases = []
+    
+    for phrase in SOFT_WARNING_PHRASES:
+        if phrase in text_lower:
+            found_phrases.append(phrase)
+    
+    return found_phrases
+
+def load_system_prompt() -> str:
+    """Load Agent 2 system prompt from markdown file."""
+    try:
+        with open("docs/agent2_system_prompt.md", "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception:
+        return "You are a professional outbound consultant."
+
 def generate_email_draft(packet: dict) -> dict:
     """
     Generate a professional outreach email draft from a validated Agent 1 handoff packet.
@@ -46,28 +106,7 @@ def generate_email_draft(packet: dict) -> dict:
     try:
         client = OpenAI(api_key=OPENAI_API_KEY)
         
-        system_prompt = """You are writing a personalized business email after manually reviewing a company's website. Sound like a real human who observed specific details, not a marketing automation system.
-
-CRITICAL RULES:
-- Use ONLY facts present in the packet
-- Never invent claims or statistics
-- Never promise guaranteed results
-- Respect all do_not_say phrases from packet
-- Use 1-2 personalization_hooks naturally in conversation
-- Reference one real observed weakness naturally
-- Keep email concise (max 180 words)
-- Sound conversational-professional, not corporate
-- Avoid generic phrases: "strengthen your digital presence", "boost your online visibility", "enhance your brand", "drive engagement"
-- Avoid mass outreach language
-- Human review is required for all emails
-- Return ONLY valid JSON. No markdown. No explanations. No surrounding text.
-
-Email Structure:
-- Subject: Max 60 characters, compelling but professional
-- Body: 2-3 short paragraphs, mobile-friendly
-- Reference specific observations from packet
-- Include clear but respectful call-to-action
-- Avoid aggressive sales language"""
+        system_prompt = load_system_prompt()
 
         user_prompt = f"""Generate a personalized business email based on this handoff packet:
 
@@ -157,6 +196,21 @@ Requirements:
         if len(draft.get("subject", "")) > 50:
             validation_errors.append("subject must be max 50 characters")
         
+        # Phrase quality gate
+        combined_text = f"{draft.get('subject', '')} {draft.get('body', '')}"
+        banned_phrases = find_banned_phrases(combined_text)
+        soft_warnings = find_soft_warning_phrases(combined_text)
+        
+        # Handle absolute banned phrases (fail generation)
+        for phrase in banned_phrases:
+            validation_errors.append(f"Banned phrase detected: {phrase}")
+        
+        # Handle soft warning phrases (warn but don't fail)
+        final_errors = validation_errors.copy()
+        for phrase in soft_warnings:
+            final_errors.append(f"Soft warning phrase detected: {phrase}")
+        
+        # Fail only if there are banned phrases or other validation errors
         if validation_errors:
             return {
                 "success": False,
@@ -164,9 +218,10 @@ Requirements:
                 "draft": draft  # Return partial draft for debugging
             }
         
+        # Success with soft warnings included
         return {
             "success": True,
-            "errors": [],
+            "errors": [f"Soft warning phrase detected: {phrase}" for phrase in soft_warnings],
             "draft": draft
         }
         
@@ -180,6 +235,11 @@ Requirements:
 
 if __name__ == "__main__":
     print("Testing Agent 2 Email Composer...")
+    
+    # Verify system prompt loading
+    system_prompt = load_system_prompt()
+    print(f"System prompt loaded (first 100 chars): {system_prompt[:100]}...")
+    print()
     
     # Minimal test packet
     test_packet = {
@@ -228,5 +288,30 @@ if __name__ == "__main__":
     if result['draft']:
         print("\nGenerated Draft:")
         print(json.dumps(result['draft'], indent=2))
+    
+    print("\n" + "="*50 + "\n")
+    
+    # Test phrase detection
+    print("Testing phrase detection...")
+    
+    # Test banned phrases
+    banned_text = "This is a game-changer solution that will enhance your digital presence"
+    banned_found = find_banned_phrases(banned_text)
+    print(f"Banned phrases in: '{banned_text}'")
+    print(f"Found: {banned_found}")
+    
+    # Test soft warning phrases
+    soft_text = "I hope this message finds you well. Would you be open to discussing?"
+    soft_found = find_soft_warning_phrases(soft_text)
+    print(f"\nSoft warning phrases in: '{soft_text}'")
+    print(f"Found: {soft_found}")
+    
+    # Test clean text
+    clean_text = "Modern solutions for your business needs"
+    clean_found_banned = find_banned_phrases(clean_text)
+    clean_found_soft = find_soft_warning_phrases(clean_text)
+    print(f"\nClean text: '{clean_text}'")
+    print(f"Banned found: {clean_found_banned}")
+    print(f"Soft warnings found: {clean_found_soft}")
     
     print("\nAgent 2 Email Composer test completed.")
