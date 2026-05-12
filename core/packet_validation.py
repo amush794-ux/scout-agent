@@ -101,6 +101,11 @@ def validate_handoff_packet(packet: dict) -> Tuple[bool, List[str]]:
         if packet["schema_version"] != "1.0":
             errors.append("schema_version must be '1.0'")
     
+    # Validate language field
+    if "language" in packet:
+        if packet["language"] not in ["ro", "en", "unknown"]:
+            errors.append("language must be 'ro', 'en', or 'unknown'")
+    
     # Validate metadata
     if "metadata" in packet:
         if not isinstance(packet["metadata"], dict):
