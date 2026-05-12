@@ -27,6 +27,7 @@ All fields below must be present in every handoff packet:
 |--------|------|----------|-------------|
 | `company_name` | string | ✅ | Business name from website |
 | `url` | string | ✅ | Original scouted URL |
+| `language` | string | ✅ | Outreach behavior language ("ro", "en", "unknown") |
 | `vertical` | string | ✅ | Industry classification |
 | `core_offer` | string | ✅ | Primary product/service offering |
 | `target_customer` | string | ✅ | Intended customer base |
@@ -57,6 +58,7 @@ All fields below must be present in every handoff packet:
 
 ### Core Business Intelligence
 - **company_name**: Legal/trade name clearly visible on website
+- **language**: Outreach behavior language ("ro", "en", "unknown") - Controls which Agent 2 behavior rules to load
 - **vertical**: Industry classification (e.g., "healthcare", "technology", "professional_services")
 - **core_offer**: Primary product or service offering
 - **target_customer**: Intended customer base or audience
@@ -140,6 +142,7 @@ Phrases to avoid in outreach:
 {
   "company_name": "Advanced Dental Imaging",
   "url": "https://advanceddental.com",
+  "language": "en",
   "vertical": "healthcare",
   "core_offer": "Dental imaging equipment and software",
   "target_customer": "Dental clinics and imaging centers",
@@ -170,6 +173,29 @@ Phrases to avoid in outreach:
 }
 ```
 
+## Language Field Examples
+
+**GOOD:**
+```json
+{
+  "language": "ro"
+}
+```
+
+**GOOD:**
+```json
+{
+  "language": "en"
+}
+```
+
+**BAD:**
+```json
+{
+  "company_name": "Advanced Dental Imaging"
+}
+```
+
 ## Future Extension Notes
 
 ### Version 1.1 Considerations
@@ -177,6 +203,12 @@ Phrases to avoid in outreach:
 - Include `budget_indicators` for pricing strategy
 - Expand `personalization_hooks` to include temporal data
 - Add `compliance_flags` for regulated industries
+
+### Version 1.1 Considerations
+- Add `language` field for native behavior selection
+- Romanian outreach uses Romanian-native rules
+- English outreach uses English-native rules
+- Future multilingual support should use native behavior layers, not direct translation
 
 ### Version 2.0 Considerations
 - Multi-location support for franchises
@@ -189,6 +221,15 @@ Phrases to avoid in outreach:
 - New fields should be optional with sensible defaults
 - Schema version must be explicitly incremented
 - Migration paths should be documented for breaking changes
+
+### Architecture Notes
+The `language` field enables Agent 2 to select appropriate native behavior rules:
+- **"ro"** loads Romanian outreach behavior from `docs/agent2_romanian_outreach_rules.md`
+- **"en"** loads English outreach behavior from base system prompt
+- **"unknown"** uses conservative fallback behavior
+- **Future multilingual support** should add new language-specific behavior files, not translation logic
+- **Cultural adaptation** requires behavioral specification, not linguistic translation
+- **Scalable framework** - Each language gets its own behavioral specification layer
 
 ## Usage Guidelines
 
