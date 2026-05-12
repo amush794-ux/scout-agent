@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 
 from agents.scout import run_scout, call_openai, parse_json_response
 from core.scoring import calculate_scores
+from core.packet_validation import validate_handoff_packet
 from database.db import init_db, insert_lead, save_scout_result
 
 
@@ -279,6 +280,14 @@ Analysis JSON:
         "timestamp": datetime.datetime.utcnow().isoformat(),
         "schema_version": "1.0"
     }
+    
+    # Validate packet and add results to metadata
+    is_valid_packet, packet_validation_errors = validate_handoff_packet(packet)
+    packet["metadata"]["packet_validation"] = {
+        "valid": is_valid_packet,
+        "errors": packet_validation_errors
+    }
+    
     return packet
 
 
