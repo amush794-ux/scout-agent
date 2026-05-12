@@ -212,6 +212,136 @@ def fetch_scout_results_for_lead(
     return results
 
 
+def update_lead_draft_status(
+    url: str,
+    status: str,
+    draft_json: dict = None,
+    rejection_reason: str = None,
+    db_path: str = "data/agency.db"
+) -> bool:
+    """Update lead draft status with validation."""
+    valid_statuses = {
+        "draft_pending", "draft_reviewing", "draft_approved", 
+        "draft_rejected", "draft_regenerating", "draft_failed"
+    }
+    
+    if status not in valid_statuses:
+        raise ValueError(f"Invalid draft status: {status}. Must be one of: {valid_statuses}")
+    
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    # Find lead by URL
+    cursor.execute("SELECT id FROM leads WHERE url = ?", (url,))
+    lead = cursor.fetchone()
+    
+    if not lead:
+        conn.close()
+        return False
+    
+    lead_id = lead[0]
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Build update query dynamically based on provided parameters
+    update_fields = ["draft_status = ?", "updated_at = ?"]
+    update_values = [status, now]
+    
+    if draft_json is not None:
+        update_fields.append("latest_email_draft = ?")
+        update_fields.append("draft_generated_at = ?")
+        update_values.extend([json.dumps(draft_json, ensure_ascii=False), now])
+    
+    if rejection_reason is not None:
+        update_fields.append("rejection_reason = ?")
+        update_values.append(rejection_reason)
+    
+    # Update status-specific timestamp fields
+    if status == "draft_approved":
+        update_fields.append("approved_at = ?")
+        update_values.append(now)
+    elif status == "draft_rejected":
+        update_fields.append("rejected_at = ?")
+        update_values.append(now)
+    
+    update_values.append(lead_id)
+    
+    cursor.execute(f"""
+        UPDATE leads SET {', '.join(update_fields)} WHERE id = ?
+    """, update_values)
+    
+    conn.commit()
+    conn.close()
+    return True
+
+
+def increment_revision_count(
+    url: str,
+    db_path: str = "data/agency.db"
+) -> int:
+    """Increment revision count for a lead."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    # Find lead by URL and get current revision count
+    cursor.execute("SELECT id, revision_count FROM leads WHERE url = ?", (url,))
+    lead = cursor.fetchone()
+    
+    if not lead:
+        conn.close()
+        return None
+    
+    lead_id, current_count = lead
+    new_count = (current_count or 0) + 1
+    
+    # Update revision count and timestamp
+    now = datetime.now(timezone.utc).isoformat()
+    cursor.execute("""
+        UPDATE leads SET revision_count = ?, updated_at = ? WHERE id = ?
+    """, (new_count, now, lead_id))
+    
+    conn.commit()
+    conn.close()
+    return new_count
+
+
+def reset_draft_state(
+    url: str,
+    db_path: str = "data/agency.db"
+) -> bool:
+    """Reset draft state for a lead to initial values."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    # Find lead by URL
+    cursor.execute("SELECT id FROM leads WHERE url = ?", (url,))
+    lead = cursor.fetchone()
+    
+    if not lead:
+        conn.close()
+        return False
+    
+    lead_id = lead[0]
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Reset all draft-related fields
+    cursor.execute("""
+        UPDATE leads SET 
+            draft_status = 'draft_pending',
+            revision_count = 0,
+            latest_email_draft = NULL,
+            draft_generated_at = NULL,
+            approved_at = NULL,
+            rejected_at = NULL,
+            rejection_reason = NULL,
+            updated_at = ?
+        WHERE id = ?
+    """, (now, lead_id))
+    
+    conn.commit()
+    conn.close()
+    return True
+
+
 if __name__ == "__main__":
     # Test block
     print("Running database tests...")
