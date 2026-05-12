@@ -282,6 +282,9 @@ Analysis JSON:
         "schema_version": "1.0"
     }
     
+    # Hard-default language to Romanian
+    packet["language"] = "ro"
+    
     # Validate packet and add results to metadata
     is_valid_packet, packet_validation_errors = validate_handoff_packet(packet)
     packet["metadata"]["packet_validation"] = {
