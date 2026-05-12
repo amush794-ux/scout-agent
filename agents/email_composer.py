@@ -46,16 +46,19 @@ def generate_email_draft(packet: dict) -> dict:
     try:
         client = OpenAI(api_key=OPENAI_API_KEY)
         
-        system_prompt = """You are an expert cold outreach email composer. Generate professional, personalized email drafts based on the provided handoff packet.
+        system_prompt = """You are writing a personalized business email after manually reviewing a company's website. Sound like a real human who observed specific details, not a marketing automation system.
 
 CRITICAL RULES:
 - Use ONLY facts present in the packet
 - Never invent claims or statistics
 - Never promise guaranteed results
 - Respect all do_not_say phrases from packet
-- Use personalization_hooks naturally and authentically
-- Keep email concise (150-200 words)
-- Maintain professional, consultative tone
+- Use 1-2 personalization_hooks naturally in conversation
+- Reference one real observed weakness naturally
+- Keep email concise (max 180 words)
+- Sound conversational-professional, not corporate
+- Avoid generic phrases: "strengthen your digital presence", "boost your online visibility", "enhance your brand", "drive engagement"
+- Avoid mass outreach language
 - Human review is required for all emails
 - Return ONLY valid JSON. No markdown. No explanations. No surrounding text.
 
@@ -66,13 +69,13 @@ Email Structure:
 - Include clear but respectful call-to-action
 - Avoid aggressive sales language"""
 
-        user_prompt = f"""Generate a professional cold outreach email based on this handoff packet:
+        user_prompt = f"""Generate a personalized business email based on this handoff packet:
 
 {json.dumps(packet, ensure_ascii=False, indent=2)}
 
 Return ONLY valid JSON with exactly these fields:
-- subject (string, max 60 characters)
-- body (string, 150-200 words)
+- subject (string, max 50 characters)
+- body (string, max 180 words)
 - reasoning_summary (string, explain approach)
 - risk_notes (array of concerns from packet)
 - suggested_cta (string, specific call-to-action)
@@ -83,11 +86,16 @@ Return ONLY valid JSON with exactly these fields:
 Requirements:
 - requires_human_review must always be true
 - schema_version must equal "1.0"
-- Incorporate personalization_hooks authentically
-- Address confirmed_weaknesses appropriately
-- Reference highest_value_opportunity
+- Use 1-2 personalization_hooks naturally in conversation
+- Reference one confirmed_weakness naturally
+- Mention one concrete observation from packet
+- Subject: Max 50 characters, specific and compelling
+- Body: 2-3 short paragraphs, conversational-professional
+- Avoid buzzwords and excessive adjectives
+- No marketing clichés or corporate jargon
 - Respect all do_not_say restrictions
-- Consider urgency_score and trust_score in tone"""
+- Tone matches urgency_score and trust_score
+- Sound like you actually reviewed their website"""
 
         response = client.chat.completions.create(
             model=OPENAI_MODEL,
@@ -146,8 +154,8 @@ Requirements:
         if draft.get("confidence") not in ["high", "medium", "low"]:
             validation_errors.append("confidence must be 'high', 'medium', or 'low'")
         
-        if len(draft.get("subject", "")) > 60:
-            validation_errors.append("subject must be max 60 characters")
+        if len(draft.get("subject", "")) > 50:
+            validation_errors.append("subject must be max 50 characters")
         
         if validation_errors:
             return {
