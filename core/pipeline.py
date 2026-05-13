@@ -341,13 +341,13 @@ def run_pipeline(url: str) -> dict:
             update_lead_draft_status(
                 url=url,
                 status="draft_reviewing",
-                draft_json=email_result
+                draft_json=email_result.get("draft") if email_result.get("success") else None
             )
         else:
             update_lead_draft_status(
                 url=url,
                 status="draft_failed",
-                draft_json=email_result
+                draft_json=None
             )
     except Exception:
         # Draft-state database failures should not crash the pipeline
