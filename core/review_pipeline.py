@@ -1,7 +1,13 @@
 import sqlite3
 from typing import Dict, List
 
-from database.db import get_lead_draft_state, update_lead_draft_status
+from database.db import (
+    get_lead_draft_state,
+    update_lead_draft_status,
+    increment_revision_count,
+    get_scout_packet_by_url,
+)
+from agents.email_composer import generate_email_draft
 
 _DB_PATH = "data/agency.db"
 
@@ -70,6 +76,57 @@ def reject_draft(url: str, feedback: str = None) -> bool:
         return update_lead_draft_status(url, "draft_rejected", rejection_reason=feedback)
     except Exception:
         return False
+
+
+def regenerate_draft(url: str, feedback: str = None) -> dict:
+    """Regenerate a draft for a lead.
+
+    Rules:
+    - State must be draft_reviewing or draft_rejected
+    - revision_count must be < 3
+    - Fetch original packet via get_scout_packet_by_url(url)
+    - Call generate_email_draft(packet, feedback)
+    - If generation fails: return {"success": False, "error": "..."}, do NOT increment revision_count
+    - If generation succeeds: increment_revision_count, persist new draft, return {"success": True, "draft": new_draft, "revision_count": count}
+    - revision_count tracks successful regenerations only
+    - No draft_regenerating status
+    """
+    try:
+        state = get_lead_draft_state(url)
+        if not state:
+            return {"success": False, "error": "Draft state not found"}
+
+        draft_status = state.get("draft_status")
+        if draft_status not in {"draft_reviewing", "draft_rejected"}:
+            return {"success": False, "error": "Invalid draft status"}
+
+        revision_count = state.get("revision_count") or 0
+        if revision_count >= 3:
+            update_lead_draft_status(url, "draft_failed")
+            return {"success": False, "error": "Max retries reached"}
+
+        packet = get_scout_packet_by_url(url)
+        if not packet:
+            return {"success": False, "error": "Scout packet not found"}
+
+        result = generate_email_draft(packet, feedback)
+        if result.get("success") is not True:
+            return {
+                "success": False,
+                "error": "Draft generation failed",
+                "details": result.get("errors", []),
+            }
+
+        new_count = increment_revision_count(url)
+        update_lead_draft_status(url, "draft_reviewing", draft_json=result.get("draft"))
+
+        return {
+            "success": True,
+            "draft": result.get("draft"),
+            "revision_count": new_count,
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 if __name__ == "__main__":
