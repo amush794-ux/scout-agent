@@ -342,6 +342,61 @@ def reset_draft_state(
     return True
 
 
+def get_lead_draft_state(
+    url: str,
+    db_path: str = "data/agency.db"
+) -> dict:
+    """Fetch current draft review state for a lead by URL.
+
+    Returns dict with keys:
+    - url
+    - draft_status
+    - revision_count
+    - latest_email_draft (parsed from JSON if present)
+    - draft_generated_at
+    - approved_at
+    - rejected_at
+    - rejection_reason
+
+    Returns empty dict {} if lead not found.
+    Calls init_db(db_path) first to ensure schema exists.
+    Uses same sqlite3 pattern as other functions in this file.
+    """
+    try:
+        init_db(db_path)
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT url, draft_status, revision_count, latest_email_draft, draft_generated_at, approved_at, rejected_at, rejection_reason FROM leads WHERE url = ?",
+            (url,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            return {}
+
+        latest_email_draft = None
+        if row[3] is not None:
+            try:
+                latest_email_draft = json.loads(row[3])
+            except Exception:
+                latest_email_draft = None
+
+        return {
+            "url": row[0],
+            "draft_status": row[1],
+            "revision_count": row[2],
+            "latest_email_draft": latest_email_draft,
+            "draft_generated_at": row[4],
+            "approved_at": row[5],
+            "rejected_at": row[6],
+            "rejection_reason": row[7],
+        }
+    except Exception:
+        return {}
+
+
 if __name__ == "__main__":
     # Test block
     print("Running database tests...")
