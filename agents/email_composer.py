@@ -100,12 +100,13 @@ def load_language_rules(language: str) -> str:
     else:
         return ""
 
-def generate_email_draft(packet: dict) -> dict:
+def generate_email_draft(packet: dict, feedback: str = None) -> dict:
     """
     Generate a professional outreach email draft from a validated Agent 1 handoff packet.
     
     Args:
         packet: Validated Agent 1 handoff packet
+        feedback: Optional feedback to incorporate into the draft
         
     Returns:
         dict: {
@@ -176,6 +177,9 @@ Requirements:
 - Respect all do_not_say restrictions
 - Tone matches urgency_score and trust_score
 - Sound like you actually reviewed their website"""
+
+        if feedback:
+            user_prompt += f"\n\nFeedback: {feedback}\n\nIf feedback is provided, address it while still obeying all packet facts, do_not_say rules, Romanian rules, quality gates, required JSON fields, and human review requirement."
 
         response = client.chat.completions.create(
             model=OPENAI_MODEL,
