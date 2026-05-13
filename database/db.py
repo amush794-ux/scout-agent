@@ -397,6 +397,51 @@ def get_lead_draft_state(
         return {}
 
 
+def get_scout_packet_by_url(
+    url: str,
+    db_path: str = "data/agency.db"
+) -> dict:
+    """Fetch the original scout packet for a lead by URL.
+
+    Queries scout_results joined with leads.
+    Returns the 'packet' dict from the most recent scout_json.
+    Returns empty dict {} if not found.
+    Uses same sqlite3 pattern as other functions.
+    Never crashes.
+    """
+    try:
+        init_db(db_path)
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT scout_results.scout_json
+            FROM scout_results
+            JOIN leads ON leads.id = scout_results.lead_id
+            WHERE leads.url = ?
+            ORDER BY scout_results.created_at DESC
+            LIMIT 1
+            """,
+            (url,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            return {}
+
+        scout_json_text = row[0]
+        try:
+            scout_json = json.loads(scout_json_text)
+            if isinstance(scout_json, dict):
+                return scout_json.get("packet", {})
+            return {}
+        except Exception:
+            return {}
+    except Exception:
+        return {}
+
+
 if __name__ == "__main__":
     # Test block
     print("Running database tests...")
