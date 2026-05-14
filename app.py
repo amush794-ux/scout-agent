@@ -8,6 +8,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from core.pipeline import run_pipeline
+from core.review_pipeline import get_pending_reviews
 
 
 load_dotenv()
@@ -190,46 +191,61 @@ def main() -> None:
         )
 
     if run:
+        valid_run = True
+
         if not url or not is_valid_url(url):
             st.error("Please enter a valid URL (including http/https).")
-            return
+            valid_run = False
 
         if not FIRECRAWL_API_KEY or not OPENAI_API_KEY:
             st.error("Missing API keys. Add FIRECRAWL_API_KEY and OPENAI_API_KEY to `.env`.")
-            return
+            valid_run = False
 
-        try:
-            with st.spinner("Running scouting pipeline..."):
-                result = run_pipeline(url)
-                extraction = result["extraction"]
-                analysis = result["analysis"]
-                packet = result["packet"]
-                email_draft = result.get("email_draft", {})
+        if valid_run:
+            try:
+                with st.spinner("Running scouting pipeline..."):
+                    result = run_pipeline(url)
+                    extraction = result["extraction"]
+                    analysis = result["analysis"]
+                    packet = result["packet"]
+                    email_draft = result.get("email_draft", {})
 
-            st.success("Scouting complete.")
+                st.success("Scouting complete.")
 
-            with st.expander("Raw Extraction Data", expanded=False):
-                st.json(extraction)
+                with st.expander("Raw Extraction Data", expanded=False):
+                    st.json(extraction)
 
-            render_analysis_cards(analysis)
+                render_analysis_cards(analysis)
 
-            report_text = build_report_text(analysis)
-            copy_button(report_text)
+                report_text = build_report_text(analysis)
+                copy_button(report_text)
+                st.divider()
+                st.subheader("Agent Handoff Packet")
+                st.json(packet)
+                copy_button_packet(packet)
+
+                st.divider()
+                st.subheader("Agent 2 Email Draft")
+                st.json(email_draft)
+
+            except ValueError as exc:
+                st.error(f"Data formatting issue: {exc}")
+            except requests.RequestException as exc:
+                st.error(f"Network/API error: {exc}")
+            except Exception as exc:
+                st.error(f"Processing failed: {exc}")
+
+    st.divider()
+    st.subheader("Review pending email drafts")
+    pending_reviews = get_pending_reviews()
+    if not pending_reviews:
+        st.info("No pending drafts for review.")
+    else:
+        for review in pending_reviews:
+            st.markdown(f"**URL:** {review.get('url', 'N/A')}")
+            st.markdown(f"**draft_status:** {review.get('draft_status', 'N/A')}")
+            st.markdown(f"**revision_count:** {review.get('revision_count', 'N/A')}")
             st.divider()
-            st.subheader("Agent Handoff Packet")
-            st.json(packet)
-            copy_button_packet(packet)
-
-            st.divider()
-            st.subheader("Agent 2 Email Draft")
-            st.json(email_draft)
-
-        except ValueError as exc:
-            st.error(f"Data formatting issue: {exc}")
-        except requests.RequestException as exc:
-            st.error(f"Network/API error: {exc}")
-        except Exception as exc:
-            st.error(f"Processing failed: {exc}")
 
 
 if __name__ == "__main__":
