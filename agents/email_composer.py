@@ -290,7 +290,17 @@ RULE:
 The second paragraph must stay practical and specific. Do not mention growth, more clients, business performance, market competition, or broad transparency unless those exact claims are supported by the packet."""
 
         if feedback:
-            user_prompt += f"\n\nFeedback: {feedback}\n\nIf feedback is provided, address it while still obeying all packet facts, do_not_say rules, Romanian rules, quality gates, required JSON fields, and human review requirement."
+            user_prompt += f"""
+
+PREVIOUS DRAFT REJECTED.
+Human reviewer feedback:
+{feedback}
+
+Fix this specific issue in the new draft.
+Do not repeat the same mistake.
+Still obey all packet facts, do_not_say rules, Romanian rules, quality gates, required JSON fields, and human review requirement.
+Do not invent new facts.
+"""
 
         response = client.chat.completions.create(
             model=OPENAI_MODEL,
