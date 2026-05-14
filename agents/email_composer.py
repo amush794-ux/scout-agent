@@ -308,7 +308,7 @@ Do not invent new facts.
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.7,
+            temperature=0.5,
             max_tokens=1000,
             response_format={"type": "json_object"}
         )
