@@ -8,7 +8,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from core.pipeline import run_pipeline
-from core.review_pipeline import get_pending_reviews
+from core.review_pipeline import get_pending_reviews, approve_draft, reject_draft
 
 
 load_dotenv()
@@ -241,10 +241,41 @@ def main() -> None:
     if not pending_reviews:
         st.info("No pending drafts for review.")
     else:
-        for review in pending_reviews:
-            st.markdown(f"**URL:** {review.get('url', 'N/A')}")
+        for i, review in enumerate(pending_reviews):
+            url = review.get('url', 'N/A')
+            st.markdown(f"**URL:** {url}")
             st.markdown(f"**draft_status:** {review.get('draft_status', 'N/A')}")
             st.markdown(f"**revision_count:** {review.get('revision_count', 'N/A')}")
+
+            latest_email_draft = review.get("latest_email_draft", {}) or {}
+            if latest_email_draft:
+                st.markdown(f"**Subject:** {latest_email_draft.get('subject', 'N/A')}")
+                st.markdown("**Body:**")
+                st.write(latest_email_draft.get('body', ''))
+                st.markdown(f"**Confidence:** {latest_email_draft.get('confidence', 'N/A')}")
+                risk_notes = latest_email_draft.get('risk_notes')
+                if risk_notes:
+                    st.markdown(f"**Risk notes:** {risk_notes}")
+            else:
+                st.warning("No email draft content found for this review.")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Approve", key=f"approve_{url}_{i}"):
+                    result = approve_draft(url)
+                    if result:
+                        st.success(f"Approved draft for {url}")
+                    else:
+                        st.error(f"Failed to approve draft for {url}")
+            with col2:
+                feedback = st.text_area("Rejection feedback (optional)", key=f"feedback_{url}_{i}", height=50)
+                if st.button("Reject", key=f"reject_{url}_{i}"):
+                    result = reject_draft(url, feedback)
+                    if result:
+                        st.success(f"Rejected draft for {url}")
+                    else:
+                        st.error(f"Failed to reject draft for {url}")
+            
             st.divider()
 
 
