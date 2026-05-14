@@ -209,9 +209,14 @@ def main() -> None:
 
     with left:
         st.header("Scout Controls")
-        url_input_version = st.session_state.get("url_input_version", 0)
-        url = st.text_input("Website URL", placeholder="https://example.com", key=f"website_url_input_{url_input_version}")
-        run = st.button("Scout", use_container_width=True)
+        with st.form("scout_form"):
+            url_input_version = st.session_state.get("url_input_version", 0)
+            url = st.text_input(
+                "Website URL",
+                placeholder="https://example.com",
+                key=f"website_url_input_{url_input_version}",
+            )
+            run = st.form_submit_button("Scout", use_container_width=True)
         scout_status = st.empty()
         
         latest_scout_output = st.session_state.get("latest_scout_output")
