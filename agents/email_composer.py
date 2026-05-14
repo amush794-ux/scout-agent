@@ -182,11 +182,11 @@ ROMANIAN STYLE EXAMPLES:
 The following examples teach style and structure only. Do not reuse their facts unless those facts exist in the packet.
 
 GOOD SUBJECT EXAMPLES:
-- O observație despre programări
+- O observație despre prețuri
+- Despre programările de pe site
 - Despre formularul de contact
-- Un lucru observat pe site
-- Despre informațiile de pe site
-- O idee pentru pagina de servicii
+- Un lucru despre pagina de servicii
+- O observație despre servicii
 
 BAD SUBJECT EXAMPLES:
 - Oportunitate de colaborare
@@ -194,6 +194,7 @@ BAD SUBJECT EXAMPLES:
 - Creștere rapidă prin AI
 - Transformare digitală completă
 - Hai să programăm un call
+- Despre informațiile de pe site
 
 GOOD BODY EXAMPLE 1:
 Bună ziua,
@@ -244,7 +245,26 @@ BAD CTA EXAMPLES:
 - Nu ratați această oportunitate.
 
 STYLE RULE:
-Follow the GOOD examples for structure and tone. Avoid the BAD examples completely. The email must start from one concrete observation in the packet, connect it to one practical friction, and end with a low-pressure Romanian CTA."""
+Follow the GOOD examples for structure and tone. Avoid the BAD examples completely. The email must start from one concrete observation in the packet, connect it to one practical friction, and end with a low-pressure Romanian CTA.
+
+ROMANIAN PRACTICAL FRICTION RULE:
+Avoid generic business claims. Do not write vague sentences like:
+- Într-o piață competitivă, transparența poate face diferența.
+- Acest lucru poate atrage mai mulți clienți.
+- Acest aspect poate îmbunătăți imaginea companiei.
+- Asta poate crește performanța afacerii.
+- Poate aduce beneficii importante.
+
+Instead, after the first concrete observation, connect it to one practical friction:
+- poate adăuga un pas în plus înainte ca persoana să ia legătura
+- poate face comparația mai grea pentru cineva care caută rapid opțiuni
+- poate lăsa întrebări fără răspuns înainte de contact
+- poate face procesul mai neclar pentru un client nou
+- poate reduce numărul de cereri trimise prin site
+- poate face decizia mai lentă pentru cineva care compară furnizori
+
+RULE:
+Every email body must include one concrete practical friction sentence immediately after the first concrete observation. The friction must be based on packet evidence. Do not use generic business filler."""
 
         if feedback:
             user_prompt += f"\n\nFeedback: {feedback}\n\nIf feedback is provided, address it while still obeying all packet facts, do_not_say rules, Romanian rules, quality gates, required JSON fields, and human review requirement."
