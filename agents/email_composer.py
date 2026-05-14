@@ -264,7 +264,30 @@ Instead, after the first concrete observation, connect it to one practical frict
 - poate face decizia mai lentă pentru cineva care compară furnizori
 
 RULE:
-Every email body must include one concrete practical friction sentence immediately after the first concrete observation. The friction must be based on packet evidence. Do not use generic business filler."""
+Every email body must include one concrete practical friction sentence immediately after the first concrete observation. The friction must be based on packet evidence. Do not use generic business filler.
+
+SECOND PARAGRAPH RULE:
+After the practical friction sentence, do not switch into generic sales claims.
+
+Avoid sentences like:
+- Acest lucru poate atrage mai mulți clienți.
+- Acest aspect poate crește încrederea.
+- Acest lucru poate îmbunătăți transparența.
+- Multe clinici consideră acest lucru important.
+- Poate contribui la creșterea afacerii.
+- Poate ajuta la atragerea mai multor clienți.
+
+Instead, keep the second paragraph close to the original observation.
+
+Good second-paragraph patterns:
+- Am notat câteva ajustări simple pe care le-aș verifica înainte de a schimba pagina.
+- Am 2-3 observații concrete despre cum ar putea fi făcut mai clar acest punct.
+- Aș putea să vă trimit câteva idei scurte, strict pe acest aspect.
+- Am notat câteva lucruri care pot reduce pașii înainte de contact.
+- Vă pot trimite observațiile fără să intrăm într-o discuție lungă.
+
+RULE:
+The second paragraph must stay practical and specific. Do not mention growth, more clients, business performance, market competition, or broad transparency unless those exact claims are supported by the packet."""
 
         if feedback:
             user_prompt += f"\n\nFeedback: {feedback}\n\nIf feedback is provided, address it while still obeying all packet facts, do_not_say rules, Romanian rules, quality gates, required JSON fields, and human review requirement."
