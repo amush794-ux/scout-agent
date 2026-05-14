@@ -248,22 +248,6 @@ def main() -> None:
                 with right:
                     st.success("Scouting complete.")
 
-                    with st.expander("Raw Extraction Data", expanded=False):
-                        st.json(extraction)
-
-                    render_analysis_cards(analysis)
-
-                    report_text = build_report_text(analysis)
-                    copy_button(report_text)
-                    st.divider()
-                    st.subheader("Agent Handoff Packet")
-                    st.json(packet)
-                    copy_button_packet(packet)
-
-                    st.divider()
-                    st.subheader("Agent 2 Email Draft")
-                    st.json(email_draft)
-                
                 st.session_state["active_review_url"] = packet.get("url", url)
 
             except ValueError as exc:
@@ -350,6 +334,36 @@ def main() -> None:
                         st.error(f"Failed to reject draft for {url}")
                 
                 st.divider()
+
+    with right:
+        latest_scout_output = st.session_state.get("latest_scout_output")
+
+        if latest_scout_output:
+            extraction = latest_scout_output.get("extraction")
+            analysis = latest_scout_output.get("analysis")
+            packet = latest_scout_output.get("packet")
+            email_draft = latest_scout_output.get("email_draft")
+
+            st.success("Latest Scout output")
+
+            with st.expander("Raw Extraction Data", expanded=False):
+                st.json(extraction)
+
+            render_analysis_cards(analysis)
+
+            report_text = build_report_text(analysis)
+            copy_button(report_text)
+
+            st.divider()
+            st.subheader("Agent Handoff Packet")
+            st.json(packet)
+            copy_button_packet(packet)
+
+            st.divider()
+            st.subheader("Agent 2 Email Draft")
+            st.json(email_draft)
+        else:
+            st.info("No Scout output yet.")
 
 
 if __name__ == "__main__":
