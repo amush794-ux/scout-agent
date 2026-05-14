@@ -176,7 +176,75 @@ Requirements:
 - No marketing clichés or corporate jargon
 - Respect all do_not_say restrictions
 - Tone matches urgency_score and trust_score
-- Sound like you actually reviewed their website"""
+- Sound like you actually reviewed their website
+
+ROMANIAN STYLE EXAMPLES:
+The following examples teach style and structure only. Do not reuse their facts unless those facts exist in the packet.
+
+GOOD SUBJECT EXAMPLES:
+- O observație despre programări
+- Despre formularul de contact
+- Un lucru observat pe site
+- Despre informațiile de pe site
+- O idee pentru pagina de servicii
+
+BAD SUBJECT EXAMPLES:
+- Oportunitate de colaborare
+- Soluții digitale pentru afacerea dumneavoastră
+- Creștere rapidă prin AI
+- Transformare digitală completă
+- Hai să programăm un call
+
+GOOD BODY EXAMPLE 1:
+Bună ziua,
+
+Am observat că programările se fac doar prin telefon, deși mulți clienți caută informațiile direct de pe site.
+
+Asta poate însemna pași în plus pentru cineva care vrea doar să verifice rapid disponibilitatea.
+
+Am notat 2-3 ajustări simple care ar face procesul mai clar.
+
+Merită să vi le trimit?
+
+GOOD BODY EXAMPLE 2:
+Bună ziua,
+
+Am observat că informațiile despre servicii sunt împărțite în mai multe zone ale site-ului.
+
+Pentru cineva care compară rapid opțiunile, asta poate face decizia mai lentă sau mai neclară.
+
+Vă trimit observațiile, dacă sunt utile?
+
+BAD BODY EXAMPLE 1:
+Stimate domn,
+
+Vă oferim soluții inovatoare pentru optimizarea prezenței digitale și creșterea semnificativă a performanței afacerii dumneavoastră.
+
+Cu stimă,
+[Nume]
+
+BAD BODY EXAMPLE 2:
+Bună ziua,
+
+Folosim tehnologie de ultimă generație pentru a vă ajuta să transformați digital afacerea și să obțineți rezultate excepționale.
+
+Putem programa un call pentru a discuta mai multe?
+
+GOOD CTA EXAMPLES:
+- Merită să vi le trimit?
+- Vă trimit observațiile?
+- Vreți să vedeți ce am observat?
+- Dacă e util, vă trimit detaliile.
+
+BAD CTA EXAMPLES:
+- Programați un call.
+- Hai să stabilim o întâlnire.
+- Când sunteți disponibil?
+- Contactați-ne acum.
+- Nu ratați această oportunitate.
+
+STYLE RULE:
+Follow the GOOD examples for structure and tone. Avoid the BAD examples completely. The email must start from one concrete observation in the packet, connect it to one practical friction, and end with a low-pressure Romanian CTA."""
 
         if feedback:
             user_prompt += f"\n\nFeedback: {feedback}\n\nIf feedback is provided, address it while still obeying all packet facts, do_not_say rules, Romanian rules, quality gates, required JSON fields, and human review requirement."
