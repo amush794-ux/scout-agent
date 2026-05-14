@@ -296,29 +296,31 @@ def main() -> None:
                 else:
                     st.warning("No email draft content found for this review.")
                 
-                col1, col2, col3 = st.columns([1, 2, 1])
-                with col1:
+                feedback = st.text_area("Feedback for remake or rejection", key=f"feedback_{url}_{i}", height=50)
+                
+                col_approve, col_remake = st.columns([1, 1])
+                with col_approve:
                     if st.button("Approve", key=f"approve_{url}_{i}"):
                         result = approve_draft(url)
                         if result:
                             st.success(f"Approved draft for {url}")
                         else:
                             st.error(f"Failed to approve draft for {url}")
-                with col2:
-                    feedback = st.text_area("Rejection feedback (optional)", key=f"feedback_{url}_{i}", height=50)
-                    if st.button("Reject", key=f"reject_{url}_{i}"):
-                        result = reject_draft(url, feedback)
-                        if result:
-                            st.success(f"Rejected draft for {url}")
-                        else:
-                            st.error(f"Failed to reject draft for {url}")
-                with col3:
-                    if st.button("Regenerate", key=f"regenerate_{url}_{i}"):
+                with col_remake:
+                    if st.button("🔴 Remake draft", key=f"regenerate_{url}_{i}"):
                         result = regenerate_draft(url, feedback)
                         if result.get("success"):
                             st.success(f"Regeneration complete. Revision count: {result.get('revision_count', 'N/A')}")
                         else:
                             st.error(result.get("error", "Regeneration failed"))
+                
+                st.caption("Only use Reject / skip if this lead should leave review.")
+                if st.button("🟣 Reject / skip", key=f"reject_{url}_{i}"):
+                    result = reject_draft(url, feedback)
+                    if result:
+                        st.success(f"Rejected draft for {url}")
+                    else:
+                        st.error(f"Failed to reject draft for {url}")
                 
                 st.divider()
 
