@@ -1,4 +1,5 @@
 import sqlite3
+import json
 from typing import Dict, List
 
 from database.db import (
@@ -15,27 +16,35 @@ _DB_PATH = "data/agency.db"
 def get_pending_reviews() -> List[Dict]:
     """Query leads where draft_status = 'draft_reviewing'.
     
-    Returns list of dicts with url, draft_status, revision_count.
+    Returns list of dicts with url, draft_status, revision_count, latest_email_draft.
     Returns [] if database query fails.
     """
     try:
         conn = sqlite3.connect(_DB_PATH)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT url, draft_status, revision_count FROM leads WHERE draft_status = ?",
+            "SELECT url, draft_status, revision_count, latest_email_draft FROM leads WHERE draft_status = ?",
             ("draft_reviewing",)
         )
         rows = cursor.fetchall()
         conn.close()
 
-        return [
-            {
-                "url": row[0],
-                "draft_status": row[1],
-                "revision_count": row[2],
-            }
-            for row in rows
-        ]
+        reviews = []
+        for row in rows:
+            url, draft_status, revision_count, latest_email_draft_json = row
+            latest_email_draft = {}
+            if latest_email_draft_json:
+                try:
+                    latest_email_draft = json.loads(latest_email_draft_json)
+                except json.JSONDecodeError:
+                    latest_email_draft = {}
+            reviews.append({
+                "url": url,
+                "draft_status": draft_status,
+                "revision_count": revision_count,
+                "latest_email_draft": latest_email_draft,
+            })
+        return reviews
     except Exception:
         return []
 
