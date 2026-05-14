@@ -181,13 +181,32 @@ def main() -> None:
     st.set_page_config(page_title="BI Scout", page_icon="📈", layout="wide")
     st.title("Marketing Agency Intelligence Scout")
     st.caption("Evidence-driven business intelligence scouting from public website content.")
+    
+    # CSS to make primary buttons green
+    st.markdown(
+        '''
+        <style>
+        div[data-testid="stButton"] button[kind="primary"] {
+            background-color: #16a34a;
+            border-color: #16a34a;
+            color: white;
+        }
+        div[data-testid="stButton"] button[kind="primary"]:hover {
+            background-color: #15803d;
+            border-color: #15803d;
+            color: white;
+        }
+        </style>
+        ''',
+        unsafe_allow_html=True,
+    )
 
     left, right = st.columns([1.4, 1])
 
     with left:
         st.header("Scout Controls")
         url = st.text_input("Website URL", placeholder="https://example.com")
-        run = st.button("Scout", type="primary", use_container_width=True)
+        run = st.button("Scout", use_container_width=True)
         st.markdown(
             "Reads `.env` keys: `FIRECRAWL_API_KEY` and `OPENAI_API_KEY`.",
         )
@@ -219,27 +238,18 @@ def main() -> None:
                     analysis = result["analysis"]
                     packet = result["packet"]
                     email_draft = result.get("email_draft", {})
+                    
+                    st.session_state["latest_scout_output"] = {
+                        "extraction": extraction,
+                        "analysis": analysis,
+                        "packet": packet,
+                        "email_draft": email_draft,
+                    }
 
                 with right:
                     st.success("Scouting complete.")
-
-                    with st.expander("Raw Extraction Data", expanded=False):
-                        st.json(extraction)
-
-                    render_analysis_cards(analysis)
-
-                    report_text = build_report_text(analysis)
-                    copy_button(report_text)
-                    st.divider()
-                    st.subheader("Agent Handoff Packet")
-                    st.json(packet)
-                    copy_button_packet(packet)
-
-                    st.divider()
-                    st.subheader("Agent 2 Email Draft")
-                    st.json(email_draft)
-                
-                st.session_state["active_review_url"] = packet.get("url", url)
+                    
+                    st.session_state["active_review_url"] = packet.get("url", url)
 
             except ValueError as exc:
                 with right:
@@ -289,40 +299,75 @@ def main() -> None:
                     st.markdown(f"**Subject:** {latest_email_draft.get('subject', 'N/A')}")
                     with st.container(border=True):
                         st.write(latest_email_draft.get('body', ''))
+                    
+                    # Main action buttons side by side immediately after draft body
+                    feedback_key = f"feedback_{url}_{i}"
+                    feedback = st.session_state.get(feedback_key, "")
+                    
+                    col_approve, col_remake = st.columns([1, 1])
+                    with col_approve:
+                        if st.button("Approve draft", key=f"approve_{url}_{i}", type="primary"):
+                            result = approve_draft(url)
+                            if result:
+                                st.success(f"Approved draft for {url}")
+                                st.rerun()
+                            else:
+                                st.error(f"Failed to approve draft for {url}")
+                    with col_remake:
+                        if st.button("🔴 Remake draft", key=f"regenerate_{url}_{i}"):
+                            result = regenerate_draft(url, feedback)
+                            if result.get("success"):
+                                st.success(f"Regeneration complete. Revision count: {result.get('revision_count', 'N/A')}")
+                                st.rerun()
+                            else:
+                                st.error(result.get("error", "Regeneration failed"))
+                    
+                    # Feedback text area below main buttons
+                    st.text_area("Feedback for remake or rejection", key=feedback_key, height=50)
+                    
+                    # Confidence only (risk notes removed)
                     st.markdown(f"**Confidence:** {latest_email_draft.get('confidence', 'N/A')}")
-                    risk_notes = latest_email_draft.get('risk_notes')
-                    if risk_notes:
-                        st.markdown(f"**Risk notes:** {risk_notes}")
+                    
+                    # Secondary reject button at bottom
+                    st.caption("Only use Reject / skip if this lead should leave review.")
+                    if st.button("🟣 Reject / skip", key=f"reject_{url}_{i}"):
+                        result = reject_draft(url, feedback)
+                        if result:
+                            st.success(f"Rejected draft for {url}")
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to reject draft for {url}")
                 else:
                     st.warning("No email draft content found for this review.")
                 
-                feedback = st.text_area("Feedback for remake or rejection", key=f"feedback_{url}_{i}", height=50)
-                
-                col_approve, col_remake = st.columns([1, 1])
-                with col_approve:
-                    if st.button("Approve", key=f"approve_{url}_{i}"):
-                        result = approve_draft(url)
-                        if result:
-                            st.success(f"Approved draft for {url}")
-                        else:
-                            st.error(f"Failed to approve draft for {url}")
-                with col_remake:
-                    if st.button("🔴 Remake draft", key=f"regenerate_{url}_{i}"):
-                        result = regenerate_draft(url, feedback)
-                        if result.get("success"):
-                            st.success(f"Regeneration complete. Revision count: {result.get('revision_count', 'N/A')}")
-                        else:
-                            st.error(result.get("error", "Regeneration failed"))
-                
-                st.caption("Only use Reject / skip if this lead should leave review.")
-                if st.button("🟣 Reject / skip", key=f"reject_{url}_{i}"):
-                    result = reject_draft(url, feedback)
-                    if result:
-                        st.success(f"Rejected draft for {url}")
-                    else:
-                        st.error(f"Failed to reject draft for {url}")
-                
                 st.divider()
+
+    # Right panel - display latest Scout output from session_state
+    with right:
+        latest_output = st.session_state.get("latest_scout_output")
+        if latest_output:
+            extraction = latest_output.get("extraction")
+            analysis = latest_output.get("analysis")
+            packet = latest_output.get("packet")
+            email_draft = latest_output.get("email_draft")
+            
+            with st.expander("Raw Extraction Data", expanded=False):
+                st.json(extraction)
+
+            render_analysis_cards(analysis)
+
+            report_text = build_report_text(analysis)
+            copy_button(report_text)
+            st.divider()
+            st.subheader("Agent Handoff Packet")
+            st.json(packet)
+            copy_button_packet(packet)
+
+            st.divider()
+            st.subheader("Agent 2 Email Draft")
+            st.json(email_draft)
+        else:
+            st.info("No Scout output yet.")
 
 
 if __name__ == "__main__":
