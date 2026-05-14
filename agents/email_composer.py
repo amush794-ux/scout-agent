@@ -26,6 +26,14 @@ ABSOLUTE_BANNED_PHRASES = [
     "soluții digitale",
     "strategie digitală",
     "transformare digitală",
+    "[nume]",
+    "[prenume]",
+    "[companie]",
+    "[semnătură]",
+    "cu respect",
+    "cu stimă",
+    "cu deosebit respect",
+    "toate cele bune",
 ]
 
 SOFT_WARNING_PHRASES = [
@@ -170,6 +178,9 @@ Requirements:
 - Use 1-2 personalization_hooks naturally in conversation
 - Reference one confirmed_weakness naturally
 - Mention one concrete observation from packet
+- Do not include a closing/sign-off/signature.
+- Do not include placeholders such as [Nume], [Companie], or similar.
+- End the body with the CTA.
 - Subject: Max 50 characters, specific and compelling
 - Body: 2-3 short paragraphs, conversational-professional
 - Avoid buzzwords and excessive adjectives
@@ -364,6 +375,8 @@ Do not invent new facts.
         
         # Phrase quality gate
         combined_text = f"{draft.get('subject', '')} {draft.get('body', '')}"
+        if "[" in combined_text or "]" in combined_text:
+            validation_errors.append("Placeholder detected: square brackets are not allowed")
         banned_phrases = find_banned_phrases(combined_text)
         soft_warnings = find_soft_warning_phrases(combined_text)
         
