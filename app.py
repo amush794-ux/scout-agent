@@ -294,6 +294,11 @@ def main() -> None:
         st.subheader("Current draft review")
         active_review_url = st.session_state.get("active_review_url")
         
+        # Display any review action errors
+        review_action_error = st.session_state.pop("review_action_error", None)
+        if review_action_error:
+            st.error(review_action_error)
+        
         if not active_review_url:
             st.info("No active draft. Run Scout to load a draft for review.")
         else:
@@ -361,7 +366,12 @@ def main() -> None:
                             st.session_state["latest_scout_output"] = None
                             st.rerun()
                         else:
-                            st.error(result.get("error", "Regeneration failed"))
+                            # Store error for display after rerun and clear UI state
+                            st.session_state["review_action_error"] = result.get("error", "Regeneration failed")
+                            # Keep active review URL but clear URL input and right column
+                            st.session_state["url_input_version"] += 1
+                            st.session_state["latest_scout_output"] = None
+                            st.rerun()
                 
                 st.text_area("Feedback for remake or rejection", key=feedback_key, height=50)
 
