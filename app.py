@@ -210,6 +210,28 @@ def main() -> None:
             "Reads `.env` keys: `FIRECRAWL_API_KEY` and `OPENAI_API_KEY`.",
         )
 
+        latest_scout_output = st.session_state.get("latest_scout_output")
+        active_review_url = st.session_state.get("active_review_url")
+
+        if latest_scout_output:
+            st.markdown("URL OK -> Scout OK -> Draft OK -> Review")
+            if active_review_url:
+                pending_reviews = get_pending_reviews()
+                normalized_active_url = active_review_url.rstrip("/")
+                has_matching_review = any(
+                    (review.get("url", "").rstrip("/") == normalized_active_url)
+                    for review in pending_reviews
+                )
+                if has_matching_review:
+                    st.caption("Draft ready for review.")
+                else:
+                    st.caption("Review unavailable for current URL.")
+            else:
+                st.caption("Draft ready for review.")
+        else:
+            st.markdown("URL -> Scout -> Draft -> Review")
+            st.caption("Run Scout to start.")
+
     result = None
     extraction = None
     analysis = None
