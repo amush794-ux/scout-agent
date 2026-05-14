@@ -21,6 +21,7 @@ load_dotenv()
 FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY")
 FIRECRAWL_BASE_URL = "https://api.firecrawl.dev/v1"
 MAX_SUBPAGES = 5
+MAX_CLEANED_TEXT_CHARS = 30000
 
 
 def is_valid_url(url: str) -> bool:
@@ -303,6 +304,11 @@ def run_pipeline(url: str) -> dict:
     if not pages:
         raise RuntimeError("No pages were scraped.")
     cleaned_text = preprocess_pages(pages)
+    
+    # Prevent oversized LLM requests on large websites
+    if len(cleaned_text) > MAX_CLEANED_TEXT_CHARS:
+        cleaned_text = cleaned_text[:MAX_CLEANED_TEXT_CHARS]
+    
     scout_result = run_scout(cleaned_text)
     extraction = scout_result["extraction"]
     analysis = scout_result["analysis"]

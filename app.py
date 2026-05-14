@@ -179,6 +179,11 @@ def render_analysis_cards(analysis: Dict[str, Any]) -> None:
 
 def main() -> None:
     st.set_page_config(page_title="BI Scout", page_icon="📈", layout="wide")
+    
+    # Initialize URL input version if not exists
+    if "url_input_version" not in st.session_state:
+        st.session_state["url_input_version"] = 0
+    
     st.title("Marketing Agency Intelligence Scout")
     st.caption("Evidence-driven business intelligence scouting from public website content.")
 
@@ -204,17 +209,15 @@ def main() -> None:
 
     with left:
         st.header("Scout Controls")
-        url = st.text_input("Website URL", placeholder="https://example.com")
+        url_input_version = st.session_state.get("url_input_version", 0)
+        url = st.text_input("Website URL", placeholder="https://example.com", key=f"website_url_input_{url_input_version}")
         run = st.button("Scout", use_container_width=True)
-        st.markdown(
-            "Reads `.env` keys: `FIRECRAWL_API_KEY` and `OPENAI_API_KEY`.",
-        )
-
+        scout_status = st.empty()
+        
         latest_scout_output = st.session_state.get("latest_scout_output")
         active_review_url = st.session_state.get("active_review_url")
 
         if latest_scout_output:
-            st.markdown("URL OK -> Scout OK -> Draft OK -> Review")
             if active_review_url:
                 pending_reviews = get_pending_reviews()
                 normalized_active_url = active_review_url.rstrip("/")
@@ -229,7 +232,6 @@ def main() -> None:
             else:
                 st.caption("Draft ready for review.")
         else:
-            st.markdown("URL -> Scout -> Draft -> Review")
             st.caption("Run Scout to start.")
 
     result = None
@@ -237,6 +239,10 @@ def main() -> None:
     analysis = None
     packet = None
     email_draft = None
+
+    # Create right column output container before run block
+    with right:
+        right_output_container = st.empty()
 
     if run:
         valid_run = True
@@ -253,34 +259,35 @@ def main() -> None:
 
         if valid_run:
             try:
-                with st.spinner("Running scouting pipeline..."):
-                    result = run_pipeline(url)
-                    extraction = result["extraction"]
-                    analysis = result["analysis"]
-                    packet = result["packet"]
-                    email_draft = result.get("email_draft", {})
+                # Clear old right-side output and show scouting status
+                st.session_state["latest_scout_output"] = None
+                right_output_container.empty()
+                with right_output_container.container():
+                    st.info("Scouting new website...")
+                    with st.spinner("Scouting website..."):
+                        result = run_pipeline(url)
+                
+                extraction = result["extraction"]
+                analysis = result["analysis"]
+                packet = result["packet"]
+                email_draft = result.get("email_draft", {})
 
-                    st.session_state["latest_scout_output"] = {
-                        "extraction": extraction,
-                        "analysis": analysis,
-                        "packet": packet,
-                        "email_draft": email_draft,
-                    }
+                st.session_state["latest_scout_output"] = {
+                    "extraction": extraction,
+                    "analysis": analysis,
+                    "packet": packet,
+                    "email_draft": email_draft,
+                }
 
-                with right:
-                    st.success("Scouting complete.")
-
+                scout_status.success("Scouting complete.")
                 st.session_state["active_review_url"] = packet.get("url", url)
 
             except ValueError as exc:
-                with right:
-                    st.error(f"Data formatting issue: {exc}")
+                scout_status.error(f"Data formatting issue: {exc}")
             except requests.RequestException as exc:
-                with right:
-                    st.error(f"Network/API error: {exc}")
+                scout_status.error(f"Network/API error: {exc}")
             except Exception as exc:
-                with right:
-                    st.error(f"Processing failed: {exc}")
+                scout_status.error(f"Processing failed: {exc}")
 
     with left:
         st.divider()
@@ -332,6 +339,14 @@ def main() -> None:
                         result = approve_draft(url)
                         if result:
                             st.success(f"Approved draft for {url}")
+                            # Clear active review state since draft is approved
+                            if "active_review_url" in st.session_state:
+                                del st.session_state["active_review_url"]
+                            # Increment URL input version to clear the input field
+                            st.session_state["url_input_version"] += 1
+                            # Clear right-side Scout output
+                            st.session_state["latest_scout_output"] = None
+                            st.rerun()
                         else:
                             st.error(f"Failed to approve draft for {url}")
                 with col_remake:
@@ -339,6 +354,12 @@ def main() -> None:
                         result = regenerate_draft(url, feedback)
                         if result.get("success"):
                             st.success(f"Regeneration complete. Revision count: {result.get('revision_count', 'N/A')}")
+                            # Keep active review URL but refresh the review data
+                            # Increment URL input version to clear the input field
+                            st.session_state["url_input_version"] += 1
+                            # Clear right-side Scout output
+                            st.session_state["latest_scout_output"] = None
+                            st.rerun()
                         else:
                             st.error(result.get("error", "Regeneration failed"))
                 
@@ -352,12 +373,20 @@ def main() -> None:
                     result = reject_draft(url, feedback)
                     if result:
                         st.success(f"Rejected draft for {url}")
+                        # Clear active review state since draft is rejected
+                        if "active_review_url" in st.session_state:
+                            del st.session_state["active_review_url"]
+                        # Increment URL input version to clear the input field
+                        st.session_state["url_input_version"] += 1
+                        # Clear right-side Scout output
+                        st.session_state["latest_scout_output"] = None
+                        st.rerun()
                     else:
                         st.error(f"Failed to reject draft for {url}")
                 
                 st.divider()
 
-    with right:
+    with right_output_container.container():
         latest_scout_output = st.session_state.get("latest_scout_output")
 
         if latest_scout_output:
