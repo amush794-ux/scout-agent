@@ -182,7 +182,7 @@ def main() -> None:
     st.title("Marketing Agency Intelligence Scout")
     st.caption("Evidence-driven business intelligence scouting from public website content.")
 
-    left, right = st.columns([1, 2])
+    left, right = st.columns([1.4, 1])
 
     with left:
         st.header("Scout Controls")
@@ -282,14 +282,13 @@ def main() -> None:
                 i = 0
                 url = matching_review.get('url', 'N/A')
                 st.markdown(f"**URL:** {url}")
-                st.markdown(f"**draft_status:** {matching_review.get('draft_status', 'N/A')}")
                 st.markdown(f"**revision_count:** {matching_review.get('revision_count', 'N/A')}")
 
                 latest_email_draft = matching_review.get("latest_email_draft", {}) or {}
                 if latest_email_draft:
                     st.markdown(f"**Subject:** {latest_email_draft.get('subject', 'N/A')}")
-                    st.markdown("**Body:**")
-                    st.write(latest_email_draft.get('body', ''))
+                    with st.container(border=True):
+                        st.write(latest_email_draft.get('body', ''))
                     st.markdown(f"**Confidence:** {latest_email_draft.get('confidence', 'N/A')}")
                     risk_notes = latest_email_draft.get('risk_notes')
                     if risk_notes:
