@@ -298,6 +298,7 @@ Analysis JSON:
 def run_pipeline(url: str) -> dict:
     if not is_valid_url(url):
         raise ValueError("Please enter a valid URL (including http/https).")
+    url = normalize_url(url)
     pages = crawl_site(url, MAX_SUBPAGES)
     if not pages:
         raise RuntimeError("No pages were scraped.")
