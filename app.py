@@ -238,6 +238,13 @@ def main() -> None:
                     packet = result["packet"]
                     email_draft = result.get("email_draft", {})
 
+                    st.session_state["latest_scout_output"] = {
+                        "extraction": extraction,
+                        "analysis": analysis,
+                        "packet": packet,
+                        "email_draft": email_draft,
+                    }
+
                 with right:
                     st.success("Scouting complete.")
 
