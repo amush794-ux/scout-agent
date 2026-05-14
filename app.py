@@ -8,7 +8,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from core.pipeline import run_pipeline
-from core.review_pipeline import get_pending_reviews, approve_draft, reject_draft
+from core.review_pipeline import get_pending_reviews, approve_draft, reject_draft, regenerate_draft
 
 
 load_dotenv()
@@ -259,7 +259,7 @@ def main() -> None:
             else:
                 st.warning("No email draft content found for this review.")
             
-            col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns([1, 2, 1])
             with col1:
                 if st.button("Approve", key=f"approve_{url}_{i}"):
                     result = approve_draft(url)
@@ -275,6 +275,13 @@ def main() -> None:
                         st.success(f"Rejected draft for {url}")
                     else:
                         st.error(f"Failed to reject draft for {url}")
+            with col3:
+                if st.button("Regenerate", key=f"regenerate_{url}_{i}"):
+                    result = regenerate_draft(url, feedback)
+                    if result.get("success"):
+                        st.success(f"Regeneration complete. Revision count: {result.get('revision_count', 'N/A')}")
+                    else:
+                        st.error(result.get("error", "Regeneration failed"))
             
             st.divider()
 
