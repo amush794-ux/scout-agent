@@ -150,9 +150,6 @@ Am văzut că specializați pe echipamente dentare digitale. Are sens să vă tr
 
 Dacă e util, vă trimit detaliile.
 
-Cu respect,
-[Nume]
-
 **Why This Works:**
 - Natural Romanian flow
 - Specific observation (missing prices)
@@ -170,10 +167,7 @@ Stimate domnule,
 
 Vă contactez în speranța unei colaborări strategice. Compania noastră oferă soluții digitale inovatoare pentru creșterea vizibilității online. Am analizat site-ul dumneavoastră și considerăm că putem optimiza prezența digitală pentru a maximiza potențialul de business.
 
-Ați fi deschis la o discuție scurtă despre cum vă putem ajuta să transformați digital afacerea?
-
-Cu stimă,
-[Nume]
+Ați fi deschiși la o discuție scurtă despre cum vă putem ajuta să transformați digital afacerea?
 
 **Why This Fails:**
 - Overly formal and dated language
@@ -202,5 +196,27 @@ Cu stimă,
 - **Cultural authenticity** - Language quality directly affects conversion rates
 - **Scalable framework** - Each language gets its own specification layer
 - **Quality standards** - Native speakers should validate all communication patterns
+
+## Multi-Friction Website Teardown Rule
+
+Agent 2 should usually avoid building the email around only one isolated problem unless the packet clearly contains only one usable signal.
+
+Preferred framing:
+- mention that the site has several small friction points together
+- use 2-3 concrete observations from the packet
+- connect them to hesitation, trust, clarity, or contact friction
+- do not turn the email into a long audit
+- do not list too many problems aggressively
+
+Good framing:
+"Am observat câteva lucruri care, împreună, pot face site-ul mai puțin convingător decât ar putea fi: mesajul principal nu e foarte clar din prima, unele informații importante sunt greu de găsit, iar partea de încredere ar putea fi susținută mai bine."
+
+Bad framing:
+"M-am uitat pe site și lipsește prețul."
+
+Important:
+Keep the tone sharp, direct, and practical.
+Avoid consultant language.
+Avoid sounding like a translated marketing agency.
 
 The Romanian outreach specification demonstrates that effective multilingual communication requires cultural behavior adaptation, not just language translation.
