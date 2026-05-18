@@ -97,7 +97,7 @@ def load_language_rules(language: str) -> str:
     """Load language-specific outreach rules from markdown file."""
     if language == "ro":
         try:
-            with open("docs/agent2_romanian_outreach_rules.md", "r", encoding="utf-8") as f:
+            with open("docs/agent2_email_standard_v1.md", "r", encoding="utf-8") as f:
                 return f.read()
         except Exception:
             return ""
@@ -156,7 +156,7 @@ def generate_email_draft(packet: dict, feedback: str = None) -> dict:
         
         # Add explicit language instruction
         if language == "ro":
-            system_prompt += "\n\nIMPORTANT: Write the email in Romanian. Do not translate English templates. Follow Romanian-native rules."
+            system_prompt += "\n\nIMPORTANT: Write the email in Romanian and follow docs/agent2_email_standard_v1.md exactly. For Romanian drafts, this email standard overrides any conflicting older CTA, subject, structure, or style examples. The fixed Romanian CTA is \"Vreți să o vedeți?\". Do not use old observation-style CTAs."
 
         user_prompt = f"""Generate a personalized business email based on this handoff packet:
 
@@ -164,7 +164,7 @@ def generate_email_draft(packet: dict, feedback: str = None) -> dict:
 
 Return ONLY valid JSON with exactly these fields:
 - subject (string, max 50 characters)
-- body (string, max 180 words)
+- body (string, max 120 words)
 - reasoning_summary (string, explain approach)
 - risk_notes (array of concerns from packet)
 - suggested_cta (string, specific call-to-action)
@@ -188,117 +188,29 @@ Requirements:
 - Respect all do_not_say restrictions
 - Tone matches urgency_score and trust_score
 - Sound like you actually reviewed their website
+- For Romanian drafts, follow the Agent 2 Email Standard v1 loaded in the system prompt.
+- For Romanian drafts, docs/agent2_email_standard_v1.md overrides any conflicting older examples or CTA rules.
+- For Romanian drafts, the body must end exactly with: Vreți să o vedeți?
+- For Romanian drafts, do not use old observation-style CTAs such as "Merită să vă trimit?", "Vă trimit observațiile?", or "Putem discuta?"
+- For Romanian drafts, the offer is a new version of the existing site, not observations.
+- For Romanian drafts, use only real problems supported by the packet.
+- For Romanian drafts, use one specific site detail if the packet contains one.
+- For Romanian drafts, do not invent specific details.
 
-ROMANIAN STYLE EXAMPLES:
-The following examples teach style and structure only. Do not reuse their facts unless those facts exist in the packet.
+ROMANIAN EMAIL STANDARD:
+For language == "ro", follow the Agent 2 Email Standard v1 loaded in the system prompt.
 
-GOOD SUBJECT EXAMPLES:
-- O observație despre prețuri
-- Despre programările de pe site
-- Despre formularul de contact
-- Un lucru despre pagina de servicii
-- O observație despre servicii
-
-BAD SUBJECT EXAMPLES:
-- Oportunitate de colaborare
-- Soluții digitale pentru afacerea dumneavoastră
-- Creștere rapidă prin AI
-- Transformare digitală completă
-- Hai să programăm un call
-- Despre informațiile de pe site
-
-GOOD BODY EXAMPLE 1:
-Bună ziua,
-
-Am observat că programările se fac doar prin telefon, deși mulți clienți caută informațiile direct de pe site.
-
-Asta poate însemna pași în plus pentru cineva care vrea doar să verifice rapid disponibilitatea.
-
-Am notat 2-3 ajustări simple care ar face procesul mai clar.
-
-Merită să vi le trimit?
-
-GOOD BODY EXAMPLE 2:
-Bună ziua,
-
-Am observat că informațiile despre servicii sunt împărțite în mai multe zone ale site-ului.
-
-Pentru cineva care compară rapid opțiunile, asta poate face decizia mai lentă sau mai neclară.
-
-Vă trimit observațiile, dacă sunt utile?
-
-BAD BODY EXAMPLE 1:
-Stimate domn,
-
-Vă oferim soluții inovatoare pentru optimizarea prezenței digitale și creșterea semnificativă a performanței afacerii dumneavoastră.
-
-Cu stimă,
-[Nume]
-
-BAD BODY EXAMPLE 2:
-Bună ziua,
-
-Folosim tehnologie de ultimă generație pentru a vă ajuta să transformați digital afacerea și să obțineți rezultate excepționale.
-
-Putem programa un call pentru a discuta mai multe?
-
-GOOD CTA EXAMPLES:
-- Merită să vi le trimit?
-- Vă trimit observațiile?
-- Vreți să vedeți ce am observat?
-- Dacă e util, vă trimit detaliile.
-
-BAD CTA EXAMPLES:
-- Programați un call.
-- Hai să stabilim o întâlnire.
-- Când sunteți disponibil?
-- Contactați-ne acum.
-- Nu ratați această oportunitate.
-
-STYLE RULE:
-Follow the GOOD examples for structure and tone. Avoid the BAD examples completely. The email must start from one concrete observation in the packet, connect it to one practical friction, and end with a low-pressure Romanian CTA.
-
-ROMANIAN PRACTICAL FRICTION RULE:
-Avoid generic business claims. Do not write vague sentences like:
-- Într-o piață competitivă, transparența poate face diferența.
-- Acest lucru poate atrage mai mulți clienți.
-- Acest aspect poate îmbunătăți imaginea companiei.
-- Asta poate crește performanța afacerii.
-- Poate aduce beneficii importante.
-
-Instead, after the first concrete observation, connect it to one practical friction:
-- poate adăuga un pas în plus înainte ca persoana să ia legătura
-- poate face comparația mai grea pentru cineva care caută rapid opțiuni
-- poate lăsa întrebări fără răspuns înainte de contact
-- poate face procesul mai neclar pentru un client nou
-- poate reduce numărul de cereri trimise prin site
-- poate face decizia mai lentă pentru cineva care compară furnizori
-
-RULE:
-Every email body must include one concrete practical friction sentence immediately after the first concrete observation. The friction must be based on packet evidence. Do not use generic business filler.
-
-SECOND PARAGRAPH RULE:
-After the practical friction sentence, do not switch into generic sales claims.
-
-Avoid sentences like:
-- Acest lucru poate atrage mai mulți clienți.
-- Acest aspect poate crește încrederea.
-- Acest lucru poate îmbunătăți transparența.
-- Multe clinici consideră acest lucru important.
-- Poate contribui la creșterea afacerii.
-- Poate ajuta la atragerea mai multor clienți.
-
-Instead, keep the second paragraph close to the original observation.
-
-Good second-paragraph patterns:
-- Am notat câteva ajustări simple pe care le-aș verifica înainte de a schimba pagina.
-- Am 2-3 observații concrete despre cum ar putea fi făcut mai clar acest punct.
-- Aș putea să vă trimit câteva idei scurte, strict pe acest aspect.
-- Am notat câteva lucruri care pot reduce pașii înainte de contact.
-- Vă pot trimite observațiile fără să intrăm într-o discuție lungă.
-
-RULE:
-The second paragraph must stay practical and specific. Do not mention growth, more clients, business performance, market competition, or broad transparency unless those exact claims are supported by the packet."""
+The Romanian email must:
+- sound human, direct, and commercial
+- start with "Bună ziua,"
+- use "M-am uitat pe site-ul {business_name}"
+- mention 2-3 real problems from the packet when available
+- use vertical-specific loss language such as pacienți, programări, rezervări, or clienți
+- say that a new version of the site was already made
+- include exactly: "Dacă nu vă convinge, nu plătiți nimic."
+- end exactly with: "Vreți să o vedeți?"
+- avoid signatures, placeholders, emojis, English business words, and agency jargon
+- never invent facts"""
 
         if feedback:
             user_prompt += f"""
