@@ -203,7 +203,7 @@ For language == "ro", follow the Agent 2 Email Standard v1 loaded in the system 
 The Romanian email must:
 - sound human, direct, and commercial
 - start with "Bună ziua,"
-- use "M-am uitat pe site-ul {business_name}"
+- use "M-am uitat pe site-ul {{business_name}}"
 - mention 2-3 real problems from the packet when available
 - use vertical-specific loss language such as pacienți, programări, rezervări, or clienți
 - say that a new version of the site was already made
