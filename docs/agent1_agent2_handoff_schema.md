@@ -196,6 +196,202 @@ Phrases to avoid in outreach:
 }
 ```
 
+## email_brief
+
+email_brief is the preferred source for Agent 2 when generating Romanian outreach emails. It should contain only email-ready information: real problems, usable specific details, weak details to avoid, suggested consequence, suggested offer, and subject options.
+
+Schema:
+
+```json
+{
+  "email_brief": {
+    "business_name": "string",
+    "vertical_label": "string",
+    "customer_word": "string",
+    "comparison_context": "string",
+    "main_email_angle": "string",
+    "usable_specific_details": ["string"],
+    "avoid_as_email_details": ["string"],
+    "confirmed_email_problems": [
+      {
+        "problem": "string",
+        "evidence_type": "string",
+        "confidence": "high|medium|low"
+      }
+    ],
+    "consequence_seed": "string",
+    "offer_seed": "string",
+    "subject_options": ["string"],
+    "confidence": "high|medium|low",
+    "must_not_say": ["string"]
+  }
+}
+```
+
+Field meanings:
+
+- **business_name**: company name used in the email subject and opening.
+- **vertical_label**: human-readable Romanian business category, for example "clinică de imagistică dentară", "salon", "restaurant".
+- **customer_word**: vertical-specific loss word, for example "pacienți", "programări", "rezervări", "clienți".
+- **comparison_context**: realistic buyer context, for example "pentru cineva care compară clinici".
+- **main_email_angle**: short Romanian summary of the commercial email angle.
+- **usable_specific_details**: specific business-relevant details that are safe and useful in the email.
+- **avoid_as_email_details**: weak, generic, technical, or UI-only details that should not appear directly in the email.
+- **confirmed_email_problems**: 2-3 email-ready problems, written in Romanian when possible and based only on packet evidence.
+- **consequence_seed**: suggested Romanian consequence sentence for the second paragraph.
+- **offer_seed**: suggested Romanian offer sentence for the third paragraph.
+- **subject_options**: 2-4 subject lines Agent 2 may choose from.
+- **confidence**: overall confidence of the email brief.
+- **must_not_say**: claims Agent 2 must avoid.
+
+### Rules
+
+1. email_brief is additional. It must not replace existing packet fields yet.
+
+2. email_brief should be assembled by `core/pipeline.py` after the standard packet is created.
+
+3. During the transition, email_brief is optional and should not be required by packet validation yet.
+
+4. Once implemented, Agent 2 should treat email_brief as the primary source for Romanian emails.
+
+5. The pipeline email_brief builder must be defensive. If a source packet field is missing, empty, renamed, or malformed, it must use a safe fallback instead of crashing.
+
+Safe fallback examples:
+- missing business_name -> use company_name if available, otherwise "compania"
+- missing vertical -> use "business local"
+- missing customer_word -> use "clienți"
+- missing usable_specific_details -> use an empty list
+- missing confirmed_email_problems -> build only from confirmed weaknesses that are present
+- missing subject_options -> use "{business_name}, opinie sinceră" when business_name exists
+
+6. Do not put weak UI labels in usable_specific_details.
+
+Weak details that should usually go into avoid_as_email_details:
+- AFLĂ MAI MULT CTA
+- active blog
+- strong CTA
+- contact CTA present
+- generic CTA labels
+- generic SEO/content observations
+
+7. usable_specific_details should prefer concrete business-relevant details:
+- technology names
+- named services
+- pricing
+- testimonials
+- visible results
+- booking path
+- menu
+- contact path
+- location
+- visible trust proof
+
+8. confirmed_email_problems must be email-ready, not raw analysis labels.
+
+Bad:
+- no social proof
+- pricing information missing
+- conversion rate issues
+
+Good:
+- prețurile nu sunt vizibile
+- lipsesc testimoniale sau dovezi reale
+- tehnologia 3Shape TRIOS nu este suficient evidențiată
+
+9. consequence_seed must not promise business results. It should describe realistic client behavior.
+
+Good:
+Un pacient care caută o clinică de încredere și nu găsește rapid prețuri sau dovezi reale poate pierde interesul și alege altă clinică.
+
+Bad:
+Acest lucru va crește numărul de pacienți.
+
+10. offer_seed should describe a new version of the site, not observations.
+
+Good:
+Am făcut deja o variantă nouă a site-ului - mai clară, mai interactivă și mai ușor de navigat, cu tehnologia, serviciile și contactul prezentate mai convingător.
+
+Bad:
+Am notat câteva observații.
+
+11. email_brief must not invent facts. If a specific technology, service, or proof point is not present in the packet, it should not be added as confirmed.
+
+12. If no strong specific detail exists, usable_specific_details can be empty and confidence should usually be medium or low.
+
+13. Cost rule:
+Do not ask the LLM to generate email_brief in normal operation. The goal is to reduce repeated Agent 2 reasoning and keep token usage low by passing a compact, deterministic email brief.
+
+### Evidence Types
+
+Evidence types may include:
+- missing_pricing
+- missing_social_proof
+- missing_testimonials
+- missing_contact_path
+- weak_visual_trust
+- weak_navigation
+- specific_detail_underused
+- unclear_target_customer
+- other
+
+specific_detail_underused means a real business-relevant detail exists in the packet, such as a technology, service, product, menu, booking option, result, or location, but it is not presented strongly enough for outreach positioning.
+
+When `core/pipeline.py` later builds email_brief, it must handle evidence_type defensively. Unknown evidence_type values should not crash the pipeline. They should fall back to "other".
+
+### Visiodent Example
+
+```json
+{
+  "email_brief": {
+    "business_name": "Visiodent",
+    "vertical_label": "clinică de imagistică dentară",
+    "customer_word": "pacienți",
+    "comparison_context": "pentru cineva care compară clinici",
+    "main_email_angle": "Refacere site pentru claritate, încredere și prezentarea mai convingătoare a tehnologiei, serviciilor și contactului.",
+    "usable_specific_details": [
+      "3Shape TRIOS",
+      "servicii de imagistică dentară"
+    ],
+    "avoid_as_email_details": [
+      "AFLĂ MAI MULT CTA",
+      "active blog",
+      "contact CTA present"
+    ],
+    "confirmed_email_problems": [
+      {
+        "problem": "prețurile nu sunt vizibile",
+        "evidence_type": "missing_pricing",
+        "confidence": "high"
+      },
+      {
+        "problem": "lipsesc testimoniale sau dovezi reale",
+        "evidence_type": "missing_social_proof",
+        "confidence": "high"
+      },
+      {
+        "problem": "tehnologia 3Shape TRIOS nu este suficient evidențiată",
+        "evidence_type": "specific_detail_underused",
+        "confidence": "medium"
+      }
+    ],
+    "consequence_seed": "Un pacient care caută o clinică de încredere și nu găsește rapid prețuri sau dovezi reale poate pierde interesul și alege altă clinică.",
+    "offer_seed": "Am făcut deja o variantă nouă a site-ului - mai clară, mai interactivă și mai ușor de navigat, cu tehnologia, serviciile și contactul prezentate mai convingător.",
+    "subject_options": [
+      "Visiodent, opinie sinceră",
+      "Visiodent, prima impresie",
+      "Observații despre Visiodent"
+    ],
+    "confidence": "medium",
+    "must_not_say": [
+      "rezultate garantate",
+      "mai mulți pacienți garantat",
+      "creștere de venit",
+      "afirmații nesusținute de packet"
+    ]
+  }
+}
+```
+
 ## Future Extension Notes
 
 ### Version 1.1 Considerations
