@@ -46,6 +46,10 @@ Hard maximum: 120 words.
 
 If the email needs more than 120 words, it is too broad.
 
+Do not artificially compress the email. The target is not the shortest possible email. The target is a complete, human, concrete email.
+
+Use roughly 90-115 words when needed. Stay under 120 words, but do not sacrifice clarity just to be shorter.
+
 ## Voice
 
 The email must be:
@@ -247,6 +251,29 @@ Do not use:
 - model
 - propunere digitală
 
+## Third Paragraph Rule
+
+The third paragraph must clearly describe the new site version, not just say that problems were fixed.
+
+When describing improvements, prefer concrete packet evidence over generic adjectives. Concrete details such as technology names, services, pricing, testimonials, booking, menu, results, location, or contact path are stronger than generic descriptions like "mai clară" or "mai interactivă".
+
+Generic descriptors are allowed only when they support the concrete details, not when they replace them.
+
+Good pattern:
+Am făcut deja o variantă nouă a site-ului - mai clară, mai interactivă și mai ușor de navigat, cu [specific packet details] prezentate mai convingător.
+
+Examples of specific packet details:
+- tehnologia
+- serviciile
+- prețurile
+- testimonialele
+- rezultatele
+- rezervarea
+- meniul
+- contactul
+
+Use no more than 2-3 descriptive improvements in the same sentence. Do not stack adjectives.
+
 ## Guarantee Rule
 
 The guarantee line is fixed:
@@ -278,6 +305,35 @@ Do not use:
 - Programați un call
 - Când aveți timp?
 - Răspundeți acestui email dacă...
+
+## Preferred Romanian Phrasing Rules
+
+Prefer:
+- suficient evidențiată
+- poate pierde interesul și alege altă clinică
+- prezentate mai convingător
+- variantă nouă a site-ului
+- mai clară, mai interactivă și mai ușor de navigat
+- dovezi reale
+- pentru cineva care compară clinici
+
+Avoid:
+- închide
+- pusă în față
+- puse în față
+- motive clare
+- site mai bun
+- observații
+- variantă mai bună pentru site
+- tehnologia pusă ca argument principal
+
+## Visual/Interactivity Positioning Rule
+
+When the packet supports visual, trust, navigation, contact, or service-clarity weaknesses, the offer may position the new site as visually stronger, more interactive, and easier to navigate.
+
+Do not insult the current site. Do not say the site looks bad.
+
+Frame it as improving clarity, trust, navigation, and how convincingly the business presents its services.
 
 ## Forbidden Language Categories
 
@@ -323,11 +379,11 @@ Subject: Visiodent, opinie sinceră
 
 Bună ziua,
 
-M-am uitat pe site-ul Visiodent și am observat câteva lucruri care pot costa pacienți: prețurile nu sunt vizibile, lipsesc testimoniale clare, iar tehnologia 3Shape TRIOS nu e folosită suficient ca motiv să aibă încredere.
+M-am uitat pe site-ul Visiodent și am observat câteva lucruri care pot costa pacienți: prețurile nu sunt vizibile, lipsesc testimoniale, iar tehnologia 3Shape TRIOS nu este suficient evidențiată pentru cineva care compară clinici.
 
-Un pacient care nu găsește rapid ce caută sau motive clare să aleagă Visiodent poate merge la altă clinică.
+Un pacient care caută o clinică de încredere și nu găsește rapid prețuri sau dovezi reale poate pierde interesul și alege altă clinică.
 
-Am făcut deja o variantă nouă - servicii mai clare, tehnologie pusă în față, contact ușor de găsit. Dacă nu vă convinge, nu plătiți nimic.
+Am făcut deja o variantă nouă a site-ului - mai clară, mai interactivă și mai ușor de navigat, cu tehnologia, serviciile și contactul prezentate mai convingător. Dacă nu vă convinge, nu plătiți nimic.
 
 Vreți să o vedeți?
 
